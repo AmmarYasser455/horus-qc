@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="horus_qc/icons/horus.png" alt="horus-qc logo" width="112">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo-dark.svg">
+    <img src="assets/brand/logo.svg" alt="Horus QC logo" width="120">
+  </picture>
 </p>
 
 <h1 align="center">Horus QC</h1>
