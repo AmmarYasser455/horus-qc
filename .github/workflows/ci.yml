@@ -1,0 +1,23 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  qgis:
+    name: QGIS ${{ matrix.qgis }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        qgis: [release-3_40, latest]
+    container:
+      image: qgis/qgis:${{ matrix.qgis }}
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: python3 tests/run_tests.py

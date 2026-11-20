@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1d3557"/>
+      <stop offset="1" stop-color="#0b1a30"/>
+    </linearGradient>
+    <clipPath id="r"><rect x="2" y="2" width="60" height="60" rx="13"/></clipPath>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="13" fill="url(#bg)"/>
+  <g clip-path="url(#r)" stroke="#33557f" stroke-width="1.2">
+    <path d="M2 22H62M2 42H62M22 2V62M42 2V62"/>
+  </g>
+  <path d="M11 19 Q32 9 53 16" stroke="#f4b942" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+  <path d="M9 31 Q32 14 55 31 Q32 43 9 31Z" fill="#fff6df" stroke="#f4b942" stroke-width="3.2" stroke-linejoin="round"/>
+  <circle cx="32" cy="30.5" r="7.5" fill="#0b1a30"/>
+  <rect x="28.6" y="27.4" width="6.8" height="6.2" fill="#f4b942"/>
+  <path d="M28.6 27.4 L32 24.6 L35.4 27.4" fill="#f4b942"/>
+  <path d="M25 40 L21 54" stroke="#f4b942" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M37 39 Q40 51 48 50 Q54 48 51 43 Q48 40 45.5 44" stroke="#f4b942" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+</svg>
