@@ -142,8 +142,13 @@ class UiTest(unittest.TestCase):
         self.assertEqual(rc.remaining(), len(BUILDINGS) - 1)
         # Ctrl+Z still belongs to QGIS
         self.assertFalse(rc.on_key(Qt.Key.Key_Z, Qt.KeyboardModifier.ControlModifier))
-        # undo works for the shift
+        # undo works for the shift, and the highlight follows the undone geometry
         self.assertTrue(self.b.undoStack().count() >= 3)
+        rc._set_current(fid)
+        self.b.undoStack().undo()  # status
+        self.b.undoStack().undo()  # nudge
+        band = rc.hl.current_bands[0].asGeometry()
+        self.assertAlmostEqual(band.centroid().asPoint().x(), after.x(), places=3)
         d.btn_review.setChecked(False)
         self.assertIsNot(self.iface.mapCanvas().mapTool(), rc.tool)
 

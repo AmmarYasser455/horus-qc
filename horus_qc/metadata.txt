@@ -4,7 +4,7 @@ qgisMinimumVersion=3.22
 qgisMaximumVersion=4.99
 supportsQt6=True
 description=Building & road quality control for grid-based digitising: classified overlaps, roof-to-base shifting, a keyboard review queue and one-click fixes.
-version=1.0.0
+version=1.0.1
 author=Ammar Yasser
 email=186931310+AmmarYasser455@users.noreply.github.com
 about=Horus QC is a QA/QC toolkit for teams that digitise and review buildings and roads from satellite imagery, grid by grid.
@@ -30,4 +30,5 @@ tags=quality control,qa,qc,buildings,roads,topology,overlap,digitizing,review,va
 experimental=False
 deprecated=False
 hasProcessingProvider=no
-changelog=1.0.0 First release: 28 checks, 16 one-click fixes, review mode with roof-to-base shift, live checks.
+changelog=1.0.1 Review mode: the highlight now follows the building after Ctrl+Z / redo and edits made with other tools.
+    1.0.0 First release: 28 checks, 16 one-click fixes, review mode with roof-to-base shift, live checks.

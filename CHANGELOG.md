@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 (2026-11-20)
+
+- Review mode: the highlight now follows the building after Ctrl+Z / redo and edits made with other tools.
+
 ## 1.0.0 (2026-11-20)
 
 First release.

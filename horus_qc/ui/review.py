@@ -65,9 +65,21 @@ class ReviewController(QObject):
             self.queue, self.pos, self.current = [], -1, None
             self.session_status = {}
             self.hl.show_current(None, None)
+            if self.layer is not None:
+                try:
+                    self.layer.geometryChanged.disconnect(self._on_geometry_changed)
+                except (TypeError, RuntimeError):
+                    pass
+            if buildings is not None:
+                # keep the highlight on the building after undo/redo or edits by other tools
+                buildings.geometryChanged.connect(self._on_geometry_changed)
         self.layer = buildings
         self.grid = grid
         self.changed.emit()
+
+    def _on_geometry_changed(self, fid, _geom):
+        if fid == self.current:
+            self.refresh_highlight()
 
     def set_queue(self, fids):
         s = self.settings()

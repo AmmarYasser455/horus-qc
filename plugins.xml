@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugins>
-  <pyqgis_plugin name="Horus QC" version="1.0.0" plugin_id="horus_qc">
+  <pyqgis_plugin name="Horus QC" version="1.0.1" plugin_id="horus_qc">
     <description>Building &amp; road quality control for grid-based digitising: classified overlaps, roof-to-base shifting, a keyboard review queue and one-click fixes.</description>
     <about>Horus QC is a QA/QC toolkit for teams that digitise and review buildings and roads from satellite imagery, grid by grid.
 
@@ -16,15 +16,15 @@ It goes beyond general topology checkers:
 • All fixes are undoable (Ctrl+Z); nothing leaves your computer
 
 Overlap logic is ported from OVC (https://github.com/AmmarYasser455/ovc).</about>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <qgis_minimum_version>3.22.0</qgis_minimum_version>
     <qgis_maximum_version>4.99.0</qgis_maximum_version>
     <supports_qt6>True</supports_qt6>
     <homepage>https://github.com/AmmarYasser455/horus-qc</homepage>
-    <file_name>horus_qc-1.0.0.zip</file_name>
+    <file_name>horus_qc-1.0.1.zip</file_name>
     <icon>https://github.com/AmmarYasser455/horus-qc/raw/main/horus_qc/icons/horus.png</icon>
     <author_name>Ammar Yasser</author_name>
-    <download_url>https://github.com/AmmarYasser455/horus-qc/releases/download/v1.0.0/horus_qc-1.0.0.zip</download_url>
+    <download_url>https://github.com/AmmarYasser455/horus-qc/releases/download/v1.0.1/horus_qc-1.0.1.zip</download_url>
     <uploaded_by>AmmarYasser455</uploaded_by>
     <create_date>2026-11-20</create_date>
     <update_date>2026-11-20</update_date>

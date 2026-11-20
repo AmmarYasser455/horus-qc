@@ -941,6 +941,7 @@ class HorusDock(QDockWidget):
             self.task.cancel()
         self.live.stop()
         self.review.deactivate()
+        self.review.set_layers(None, None)
         self.hl.clear()
         self.error_layer.clear()
         project = QgsProject.instance()
