@@ -1,24 +1,59 @@
 name: release
 
+# Push a tag vX.Y.Z  -> build ZIP, GitHub release, publish to plugins.qgis.org
+# Run manually       -> build the chosen ref and publish it to plugins.qgis.org only
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch or tag to publish to plugins.qgis.org"
+        default: main
+        required: true
 
 permissions:
   contents: write
 
 jobs:
-  zip:
+  release:
     runs-on: ubuntu-latest
+    env:
+      OSGEO_USERNAME: ${{ secrets.OSGEO_USERNAME }}
+      OSGEO_PASSWORD: ${{ secrets.OSGEO_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Check versions match
+        run: |
+          VERSION=$(grep -E '^version=' horus_qc/metadata.txt | cut -d= -f2 | tr -d '\r')
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          if [ "${{ github.event_name }}" = "push" ] && [ "${GITHUB_REF_NAME}" != "v$VERSION" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match metadata.txt version $VERSION"; exit 1
+          fi
+          grep -q "<version>$VERSION</version>" plugins.xml || {
+            echo "::error::plugins.xml is not at version $VERSION - run: python scripts/bump_version.py $VERSION"; exit 1; }
+
       - name: Build plugin ZIP
         run: python scripts/build_zip.py
-      - name: Publish release
+
+      - name: GitHub release
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*.zip
           generate_release_notes: true
+
+      - name: Publish to plugins.qgis.org
+        if: env.OSGEO_USERNAME != '' && env.OSGEO_PASSWORD != ''
+        run: python scripts/upload_to_qgis_repo.py "dist/horus_qc-${VERSION}.zip"
+
+      - name: Note when publishing is not configured
+        if: env.OSGEO_USERNAME == '' || env.OSGEO_PASSWORD == ''
+        run: echo "::warning::OSGEO_USERNAME / OSGEO_PASSWORD secrets not set - skipped plugins.qgis.org upload."

@@ -26,19 +26,21 @@ It's the QGIS successor of [OVC (Overlap Violation Checker)](https://github.com/
 |---|---|
 | <img src="docs/check-tab.png" width="360"> | <img src="docs/review-tab.png" width="360"> |
 
-## Install (2 minutes)
+## Install
 
-1. Download `horus_qc-x.y.z.zip` from the [latest release](https://github.com/AmmarYasser455/horus-qc/releases/latest).
-2. In QGIS: **Plugins → Manage and Install Plugins… → Install from ZIP**, choose the file, then **Install Plugin**.
-3. The 👁 Horus toolbar appears. Click the eye to open the panel (or press **Ctrl+Alt+H**).
+**From QGIS (recommended):** go to **Plugins → Manage and Install Plugins… → All**, search for **Horus QC**, then **Install Plugin**. QGIS tells you when a new version is out and installs it with one click (**Upgradable** tab).
 
-**Team install with automatic updates:** in **Plugins → Manage and Install Plugins… → Settings → Add…**, add this repository URL:
+> Brand-new plugins are reviewed by the QGIS plugin team before they appear in the list. Until then, use one of the options below.
+
+**From ZIP:** download `horus_qc-x.y.z.zip` from the [latest release](https://github.com/AmmarYasser455/horus-qc/releases/latest), then go to **Plugins → Manage and Install Plugins… → Install from ZIP**.
+
+**From this repository, with automatic updates:** go to **Plugins → Manage and Install Plugins… → Settings → Add…** and add:
 
 ```
 https://raw.githubusercontent.com/AmmarYasser455/horus-qc/main/plugins.xml
 ```
 
-Horus QC then appears in the plugin list like any other plugin, and QGIS offers each new version as an update.
+Open the panel with the 👁 toolbar icon or **Ctrl+Alt+H**.
 
 ## Daily workflow
 
@@ -121,6 +123,16 @@ Every threshold is editable on the **Settings** tab. Every fix is a single undoa
 | Instant check after each edit | none | yes |
 | Errors as a layer | rubber bands only | styled marker layer + GeoPackage / CSV export |
 | False positives | re-appear every run | Ignore, remembered in the project |
+
+## Releasing a new version
+
+```bash
+python scripts/bump_version.py 1.1.0 "Added X; fixed Y"   # version, changelog, plugins.xml
+git commit -am "Release 1.1.0" && git tag v1.1.0
+git push && git push origin v1.1.0
+```
+
+The tag starts the release workflow. It builds the ZIP, creates the GitHub release and publishes the version to **plugins.qgis.org**, so every user gets the update from inside QGIS. Publishing needs two repository secrets: `OSGEO_USERNAME` and `OSGEO_PASSWORD`, an [OSGeo ID](https://www.osgeo.org/community/getting-started-osgeo/osgeo_userid/). To republish without a new tag, run the workflow manually from the **Actions** tab.
 
 ## Privacy
 
