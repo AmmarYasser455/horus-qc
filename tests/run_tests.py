@@ -24,5 +24,8 @@ app.initQgis()
 
 suite = unittest.defaultTestLoader.discover(os.path.join(ROOT, "tests"), top_level_dir=ROOT)
 result = unittest.TextTestRunner(verbosity=2).run(suite)
-app.exitQgis()
-sys.exit(0 if result.wasSuccessful() else 1)
+sys.stdout.flush()
+sys.stderr.flush()
+# Skip QgsApplication teardown: headless QGIS can segfault while destroying
+# canvas items at exit, which would turn a green run red.
+os._exit(0 if result.wasSuccessful() else 1)

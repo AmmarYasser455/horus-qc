@@ -139,7 +139,7 @@ QT_QPA_PLATFORM=offscreen python3 tests/run_tests.py
 python scripts/build_zip.py
 ```
 
-CI runs the test suite against QGIS 3.40 (Qt5) and the latest QGIS (Qt6). Pushing a tag `vX.Y.Z` builds the ZIP and attaches it to a GitHub release.
+CI runs the test suite against QGIS 3.40 and 3.44 (Qt5) and the latest QGIS (Qt6). Pushing a tag `vX.Y.Z` builds the ZIP and attaches it to a GitHub release.
 
 ```
 horus_qc/
