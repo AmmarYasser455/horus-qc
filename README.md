@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="horus_qc/icons/horus.png" width="110" alt="Horus QC">
+  <img src="horus_qc/icons/horus.png" alt="horus-qc logo" width="112">
 </p>
 
 <h1 align="center">Horus QC</h1>
