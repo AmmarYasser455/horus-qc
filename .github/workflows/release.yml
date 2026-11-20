@@ -19,6 +19,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
+      # Preferred: the upload token from the plugin's page on plugins.qgis.org
+      QGIS_PLUGIN_TOKEN: ${{ secrets.QGIS_PLUGIN_TOKEN }}
+      # Alternative for OSGeo ID accounts
       OSGEO_USERNAME: ${{ secrets.OSGEO_USERNAME }}
       OSGEO_PASSWORD: ${{ secrets.OSGEO_PASSWORD }}
     steps:
@@ -50,10 +53,21 @@ jobs:
           files: dist/*.zip
           generate_release_notes: true
 
-      - name: Publish to plugins.qgis.org
-        if: env.OSGEO_USERNAME != '' && env.OSGEO_PASSWORD != ''
+      - name: Publish to plugins.qgis.org (plugin token)
+        if: env.QGIS_PLUGIN_TOKEN != ''
+        run: |
+          curl --fail-with-body -sS -X POST \
+            "https://plugins.qgis.org/plugins/horus_qc/version/add/api/" \
+            -H "Authorization: Bearer ${QGIS_PLUGIN_TOKEN}" \
+            -F "package=@dist/horus_qc-${VERSION}.zip" \
+            -F "auto_approve_after_scan=true"
+          echo
+          echo "Published ${VERSION}: https://plugins.qgis.org/plugins/horus_qc/"
+
+      - name: Publish to plugins.qgis.org (OSGeo login)
+        if: env.QGIS_PLUGIN_TOKEN == '' && env.OSGEO_USERNAME != '' && env.OSGEO_PASSWORD != ''
         run: python scripts/upload_to_qgis_repo.py "dist/horus_qc-${VERSION}.zip"
 
       - name: Note when publishing is not configured
-        if: env.OSGEO_USERNAME == '' || env.OSGEO_PASSWORD == ''
-        run: echo "::warning::OSGEO_USERNAME / OSGEO_PASSWORD secrets not set - skipped plugins.qgis.org upload."
+        if: env.QGIS_PLUGIN_TOKEN == '' && (env.OSGEO_USERNAME == '' || env.OSGEO_PASSWORD == '')
+        run: echo "::warning::No QGIS_PLUGIN_TOKEN secret - skipped the plugins.qgis.org upload."

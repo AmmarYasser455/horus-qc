@@ -132,7 +132,15 @@ git commit -am "Release 1.1.0" && git tag v1.1.0
 git push && git push origin v1.1.0
 ```
 
-The tag starts the release workflow. It builds the ZIP, creates the GitHub release and publishes the version to **plugins.qgis.org**, so every user gets the update from inside QGIS. Publishing needs two repository secrets: `OSGEO_USERNAME` and `OSGEO_PASSWORD`, an [OSGeo ID](https://www.osgeo.org/community/getting-started-osgeo/osgeo_userid/). To republish without a new tag, run the workflow manually from the **Actions** tab.
+The tag starts the release workflow. It builds the ZIP, creates the GitHub release and publishes the version to **plugins.qgis.org**, so every user gets the update from inside QGIS.
+
+**One-time setup for publishing:**
+
+1. Sign in to [plugins.qgis.org](https://plugins.qgis.org) with GitHub and upload the first ZIP with **Upload a plugin**.
+2. On the plugin's page, generate an upload token and save it as the repository secret `QGIS_PLUGIN_TOKEN`:
+   `gh secret set QGIS_PLUGIN_TOKEN --repo AmmarYasser455/horus-qc`
+
+To republish without a new tag, run the release workflow manually from the **Actions** tab. Accounts with an OSGeo ID can use the `OSGEO_USERNAME` / `OSGEO_PASSWORD` secrets instead of a token.
 
 ## Privacy
 
