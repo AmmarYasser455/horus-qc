@@ -112,7 +112,7 @@ def serpentine_order(layer, fids, band_m=40.0):
 class DailyStats:
     """Per-day counters kept in QSettings (survives QGIS restarts)."""
 
-    KEYS = ("approved", "flagged", "shifted", "fixed", "added")
+    KEYS = ("approved", "flagged", "shifted", "added")
 
     def __init__(self, day=None):
         self.day = day or today_text()

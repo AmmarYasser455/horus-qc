@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0 (2026-11-20)
+
+- Simpler panel: two tabs (1 Check, 2 Review) with one big button each, problems grouped by type, and all options in a Settings window. Removed the automatic Fix buttons.
+
 ## 1.0.1 (2026-11-20)
 
 - Review mode: the highlight now follows the building after Ctrl+Z / redo and edits made with other tools.

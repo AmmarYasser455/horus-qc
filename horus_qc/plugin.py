@@ -31,12 +31,12 @@ class HorusQcPlugin:
         self.act_panel.setToolTip("Show or hide the Horus QC panel")
         self.act_panel.toggled.connect(self.toggle_panel)
 
-        self.act_run = QAction(self.icon("run.svg"), "Run Horus QC checks", self.iface.mainWindow())
+        self.act_run = QAction(self.icon("run.svg"), "Horus QC: Check", self.iface.mainWindow())
         self.act_run.triggered.connect(self.run_checks)
 
-        self.act_review = QAction(self.icon("review.svg"), "Horus review mode", self.iface.mainWindow())
+        self.act_review = QAction(self.icon("review.svg"), "Horus QC: Start review", self.iface.mainWindow())
         self.act_review.setCheckable(True)
-        self.act_review.setToolTip("Review mode: keys E/F/N/Q, 1-9 shift to base, WASD nudge")
+        self.act_review.setToolTip("Review buildings with the keyboard: 1-9 move to base, E approve, F flag")
         self.act_review.toggled.connect(self.toggle_review)
 
         for act, shortcut in ((self.act_panel, "Ctrl+Alt+H"), (self.act_run, ""), (self.act_review, "")):

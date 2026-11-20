@@ -1,4 +1,4 @@
-"""Smoke-test the real plugin UI headless: dock, background task, fixes, review keys, shift, live check."""
+"""Smoke-test the real plugin UI headless: panel, background check, list, review keys, settings, live check."""
 
 import os
 import tempfile
@@ -9,7 +9,7 @@ from qgis.PyQt.QtCore import QCoreApplication, QEvent, Qt
 from qgis.PyQt.QtGui import QKeyEvent
 from qgis.core import QgsCoordinateReferenceSystem, QgsPointXY, QgsProject, QgsRectangle
 
-from horus_qc.core.jobs import SCOPE_ALL
+from horus_qc.core.jobs import SCOPE_ALL, SCOPE_EXTENT, SCOPE_GRID_SELECTED
 from horus_qc.core.review import APPROVED, STATUS_FIELD, add_review_fields
 from tests.fixtures import BUILDINGS, GRID, ROADS, fid_of, make_layer
 
@@ -22,6 +22,10 @@ def wait_for(cond, timeout=20.0):
             return True
         time.sleep(0.01)
     return False
+
+
+def key(tool, k, text):
+    tool.keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, k, Qt.KeyboardModifier.NoModifier, text))
 
 
 class UiTest(unittest.TestCase):
@@ -52,98 +56,92 @@ class UiTest(unittest.TestCase):
             if lyr.isEditable():
                 lyr.rollBack()
 
+    def set_area(self, scope):
+        self.dock.cb_area.setCurrentIndex(self.dock.cb_area.findData(scope))
+
     def run_checks(self):
         d = self.dock
-        d.cb_scope.setCurrentIndex(d.cb_scope.findData(SCOPE_ALL))
         d.run_checks()
         self.assertTrue(wait_for(lambda: d.task is None), "task did not finish")
         return d.errors
 
-    def test_autodetect_and_run(self):
+    def test_no_fix_buttons(self):
+        self.assertFalse(hasattr(self.dock, "btn_fix"))
+        with self.assertRaises(ImportError):
+            __import__("horus_qc.core.fixes")
+
+    def test_autodetect_and_auto_area(self):
         d = self.dock
         self.assertIs(d.buildings(), self.b)
         self.assertIs(d.roads(), self.r)
         self.assertIs(d.grid(), self.g)
+        self.assertEqual(d.current_scope(), SCOPE_EXTENT)  # nothing selected in the grid
+        self.assertIn("map", d.lbl_area.text())
+        self.g.selectAll()
+        self.assertEqual(d.current_scope(), SCOPE_GRID_SELECTED)
+        self.assertIn("1 selected grid cell", d.lbl_area.text())
+
+    def test_check_groups_navigation_ignore_export(self):
+        d = self.dock
+        self.set_area(SCOPE_ALL)
         errors = self.run_checks()
         self.assertGreater(len(errors), 20)
-        lyr = d.error_layer.layer()
-        self.assertIsNotNone(lyr)
-        self.assertEqual(lyr.featureCount(), sum(1 for e in errors if not e.geometry.isNull()))
-        self.assertEqual(d.table.rowCount(), len(errors))
-        # severity filter
-        d.cb_sev.setCurrentIndex(d.cb_sev.findData("critical"))
-        self.assertTrue(all(d.errors[i].severity == "critical" for i in d.visible_rows))
-        d.cb_sev.setCurrentIndex(0)
-
-    def test_fix_from_table_and_export(self):
-        d = self.dock
-        errors = self.run_checks()
-        idx = next(i for i, e in enumerate(errors) if e.check == "b_duplicate")
-        row = d.visible_rows.index(idx)
-        d.table.selectRow(row)
-        self.assertTrue(d.btn_fix.isEnabled())
-        self.assertIn("Delete", d.guide.toPlainText() + d.btn_fix.toolTip())
-        n_before = d.error_layer.layer().featureCount()
-        d.fix_selected()
-        self.assertEqual(errors[idx].status, "fixed")
-        self.assertEqual(d.error_layer.layer().featureCount(), n_before - 1)
-        self.assertEqual(self.b.getFeature(errors[idx].fid).isValid(), False)  # duplicate deleted in edit buffer
-        # navigation
+        # one group per problem type, children = problems
+        self.assertEqual(d.tree.topLevelItemCount(), len({e.check for e in errors if e.status == "open"}))
+        self.assertEqual(len(d.order), sum(1 for e in errors if e.status == "open"))
+        self.assertEqual(d.error_layer.layer().featureCount(), sum(1 for e in errors if not e.geometry.isNull()))
+        # first problem is selected, with guidance and no fix wording
+        i0, e0 = d.selected_error()
+        self.assertEqual(i0, d.order[0])
+        self.assertIn("What to do", d.guide.toPlainText())
+        self.assertNotIn("fix", d.guide.toPlainText().lower())
         d.step_error(1)
+        self.assertEqual(d.selected_error()[0], d.order[1])
         d.step_error(-1)
+        # ignore removes it from the list and remembers it
+        n = len(d.order)
+        d.ignore_selected()
+        self.assertEqual(len(d.order), n - 1)
+        self.assertIn(e0.key, d.ignored_keys())
+        errors = self.run_checks()
+        self.assertNotIn(e0.key, [errors[i].key for i in d.order])
         out = tempfile.mkdtemp()
         d._export_csv(os.path.join(out, "e.csv"))
         d._export_gpkg(os.path.join(out, "e.gpkg"))
         self.assertTrue(os.path.getsize(os.path.join(out, "e.csv")) > 100)
         self.assertTrue(os.path.exists(os.path.join(out, "e.gpkg")))
 
-    def test_ignore_persists_in_project(self):
-        d = self.dock
-        self.run_checks()
-        d.table.selectRow(0)
-        _i, err = d.selected_error()
-        d.ignore_selected()
-        self.assertIn(err.key, d.ignored_keys())
-        errors = self.run_checks()
-        self.assertEqual([e.status for e in errors if e.key == err.key], ["ignored"])
-
-    def test_review_mode_keys_shift_and_approve(self):
+    def test_review_keys_shift_and_approve(self):
         d = self.dock
         rc = d.review
         self.assertTrue(add_review_fields(self.b))
-        d._update_review_panel()
-        d.cb_qscope.setCurrentIndex(d.cb_qscope.findData(SCOPE_ALL))
-        d.build_queue()
+        self.set_area(SCOPE_ALL)
+        self.assertTrue(d.start_review(ask_fields=False))
         self.assertEqual(len(rc.queue), len(BUILDINGS))
-        d.btn_review.setChecked(True)
         self.assertIs(self.iface.mapCanvas().mapTool(), rc.tool)
         self.assertIsNotNone(rc.current)
-        # pick a 1.5 m roof->base vector (south-west lean) on a 1-floor building
+        # pick a 1.5 m roof->base lean on a 1-floor building
         rc.start_pick()
         rc.on_click(QgsPointXY(100, 100))
         rc.on_click(QgsPointXY(99, 98.5))
-        self.assertAlmostEqual(rc.vectors["default"][0], -1.0, places=6)
-        self.assertAlmostEqual(rc.vectors["default"][1], -1.5, places=6)
+        self.assertIn("SW", d.lbl_vector.text())
         fid = rc.current
         before = self.b.getFeature(fid).geometry().centroid().asPoint()
-        # real key event through the map tool: "2" = shift by 2 floors
-        rc.tool.keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_2, Qt.KeyboardModifier.NoModifier, "2"))
+        key(rc.tool, Qt.Key.Key_2, "2")
         after = self.b.getFeature(fid).geometry().centroid().asPoint()
         self.assertAlmostEqual(after.x() - before.x(), -2.0, places=4)
         self.assertAlmostEqual(after.y() - before.y(), -3.0, places=4)
-        # nudge east with D
-        rc.tool.keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_D, Qt.KeyboardModifier.NoModifier, "d"))
+        key(rc.tool, Qt.Key.Key_D, "d")
         after2 = self.b.getFeature(fid).geometry().centroid().asPoint()
         self.assertAlmostEqual(after2.x() - after.x(), 0.25, places=4)
-        # approve -> status written and moves on
-        rc.tool.keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_E, Qt.KeyboardModifier.NoModifier, "e"))
+        done_before = d.pb_today.value()
+        key(rc.tool, Qt.Key.Key_E, "e")
         self.assertEqual(self.b.getFeature(fid)[STATUS_FIELD], APPROVED)
         self.assertNotEqual(rc.current, fid)
         self.assertEqual(rc.remaining(), len(BUILDINGS) - 1)
-        # Ctrl+Z still belongs to QGIS
+        self.assertEqual(d.pb_today.value(), min(done_before + 1, d.pb_today.maximum()))
         self.assertFalse(rc.on_key(Qt.Key.Key_Z, Qt.KeyboardModifier.ControlModifier))
-        # undo works for the shift, and the highlight follows the undone geometry
-        self.assertTrue(self.b.undoStack().count() >= 3)
+        # the highlight follows undo
         rc._set_current(fid)
         self.b.undoStack().undo()  # status
         self.b.undoStack().undo()  # nudge
@@ -151,6 +149,25 @@ class UiTest(unittest.TestCase):
         self.assertAlmostEqual(band.centroid().asPoint().x(), after.x(), places=3)
         d.btn_review.setChecked(False)
         self.assertIsNot(self.iface.mapCanvas().mapTool(), rc.tool)
+        self.assertIn("Start", d.btn_review.text())
+
+    def test_settings_dialog_applies_changes(self):
+        from horus_qc.ui.settings_dialog import SettingsDialog
+
+        dlg = SettingsDialog(self.dock)
+        dlg.spins["min_area_m2"].setValue(12.5)
+        self.assertEqual(self.dock.settings.min_area_m2, 12.5)
+        dlg.sp_target.setValue(450)
+        self.assertEqual(self.dock.pb_today.maximum(), 450)
+        top = dlg.tree.topLevelItem(0)
+        first = top.child(0)
+        key0 = first.data(0, Qt.ItemDataRole.UserRole)
+        first.setCheckState(0, Qt.CheckState.Unchecked)
+        self.assertNotIn(key0, self.dock.settings.enabled_checks)
+        dlg._reset()
+        self.assertEqual(self.dock.settings.min_area_m2, 6.0)
+        first.setCheckState(0, Qt.CheckState.Checked)
+        dlg.close()
 
     def test_live_check_after_edit(self):
         d = self.dock

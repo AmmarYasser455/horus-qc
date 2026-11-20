@@ -22,7 +22,7 @@ from qgis.core import (
 from qgis.gui import QgsMapTool
 
 from ..core.geomutils import choose_metric_crs, safe_point, transformer
-from ..core.fixes import FixError, ensure_editable
+from ..core.editing import EditError, ensure_editable
 from ..core.review import APPROVED, FLAGGED, DailyStats, has_review_fields, serpentine_order, set_status, status_of
 from .markers import centre_on
 
@@ -116,7 +116,7 @@ class ReviewController(QObject):
     # ------------------------------------------------------------- navigation
     def go(self, step):
         if not self.queue:
-            self.message.emit("Build a review queue first (Review tab).", 1)
+            self.message.emit("Press Start review on the Review tab first.", 1)
             return
         i = self.pos
         for _ in range(len(self.queue)):
@@ -228,7 +228,7 @@ class ReviewController(QObject):
             return 0
         try:
             ensure_editable(self.layer)
-        except FixError as e:
+        except EditError as e:
             self.message.emit(str(e), 1)
             return 0
         self.layer.beginEditCommand("Horus QC: %s" % label)
@@ -252,7 +252,7 @@ class ReviewController(QObject):
         mult = self.last_mult if mult is None else mult
         vec, _key = self.vector_for(self.current)
         if not vec:
-            self.message.emit("No shift vector yet: press V, click a roof corner, then the same corner at the base.", 1)
+            self.message.emit("No lean yet: press V, click a roof corner, then the same corner at the base.", 1)
             return
         n = self.translate(self._targets(), vec[0] * mult, vec[1] * mult, "shift to base x%d" % mult)
         if n:
@@ -306,7 +306,7 @@ class ReviewController(QObject):
         self.vectors[key] = [dx, dy]
         self.vectors["default"] = [dx, dy]
         self.save_vectors()
-        self.message.emit("Shift vector saved: %s per floor. Press 1-9 to shift." % describe_vector([dx, dy]), 3)
+        self.message.emit("Lean saved: %s per floor. Now press 1-9 to move buildings to their base." % describe_vector([dx, dy]), 3)
         self.changed.emit()
 
     def cancel_pick(self):

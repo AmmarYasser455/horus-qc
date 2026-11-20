@@ -5,8 +5,8 @@
 <h1 align="center">Horus QC</h1>
 
 <p align="center">
-  <b>Building &amp; road quality control for grid-based digitising in QGIS</b><br>
-  Classified overlaps · roof-to-base shifting · keyboard review queue · one-click fixes · instant checks
+  <b>Simple building &amp; road quality control for grid-based digitising in QGIS</b><br>
+  1 Check your grid · 2 Review every building with the keyboard
 </p>
 
 <p align="center">
@@ -18,21 +18,22 @@
 
 ---
 
-Horus QC is built for teams that **review and correct building footprints and roads against satellite imagery, one grid cell at a time**. It checks the data like a topology checker. It also helps with the review itself: stepping through every building in your grid, shifting footprints from roof to base with one key, and catching a mistake the moment you make it.
+Horus QC is made for teams that **review building footprints and roads against satellite imagery, one grid cell at a time**. The panel has two tabs, each with one big button:
 
-It's the QGIS successor of [OVC (Overlap Violation Checker)](https://github.com/AmmarYasser455/ovc). The OVC overlap and road logic is rewritten in pure PyQGIS, so there's **nothing to `pip install`** and it works on offline machines.
+- **1 Check** finds the problems in your grid and lists them by type. Click a problem to zoom to it and read what to do.
+- **2 Review** walks you through every building in your grid. Press **1–9** to move a building from its roof to its base, then **E** to approve it.
 
-| Check tab | Review tab |
-|---|---|
-| <img src="docs/check-tab.png" width="360"> | <img src="docs/review-tab.png" width="360"> |
+It's the QGIS successor of [OVC (Overlap Violation Checker)](https://github.com/AmmarYasser455/ovc), rewritten in pure PyQGIS, so there's **nothing to `pip install`** and it works offline.
+
+| 1 Check | 2 Review | ⚙ Settings |
+|---|---|---|
+| <img src="docs/check-tab.png" width="260"> | <img src="docs/review-tab.png" width="260"> | <img src="docs/settings.png" width="300"> |
 
 ## Install
 
-**From QGIS (recommended):** go to **Plugins → Manage and Install Plugins… → All**, search for **Horus QC**, then **Install Plugin**. QGIS tells you when a new version is out and installs it with one click (**Upgradable** tab).
+**From QGIS (recommended):** go to **Plugins → Manage and Install Plugins… → All**, search for **Horus QC**, then **Install Plugin**. QGIS tells you when a new version is out (**Upgradable** tab).
 
 > Brand-new plugins are reviewed by the QGIS plugin team before they appear in the list. Until then, use one of the options below.
-
-**From ZIP:** download `horus_qc-x.y.z.zip` from the [latest release](https://github.com/AmmarYasser455/horus-qc/releases/latest), then go to **Plugins → Manage and Install Plugins… → Install from ZIP**.
 
 **From this repository, with automatic updates:** go to **Plugins → Manage and Install Plugins… → Settings → Add…** and add:
 
@@ -40,111 +41,62 @@ It's the QGIS successor of [OVC (Overlap Violation Checker)](https://github.com/
 https://raw.githubusercontent.com/AmmarYasser455/horus-qc/main/plugins.xml
 ```
 
+**From ZIP:** download `horus_qc-x.y.z.zip` from the [latest release](https://github.com/AmmarYasser455/horus-qc/releases/latest), then go to **Plugins → Manage and Install Plugins… → Install from ZIP**.
+
 Open the panel with the 👁 toolbar icon or **Ctrl+Alt+H**.
 
-## Daily workflow
+## How to use it
 
-1. **Check tab:** pick your *Buildings*, *Roads* and *Grid / zones* layers. Horus pre-selects layers whose names look like buildings, roads or grid. Set **Check** to *Selected grid cell(s)*, select your grid cells, then press **▶ Run checks**.
-2. Work through the error list. Each row zooms to the problem and highlights:
-   - the feature (orange),
-   - the other feature involved (purple, dashed),
-   - the exact problem area or point (yellow).
-   The guidance panel explains the error and how to fix it. **Fix** applies the one-click fix; **Ignore** marks a false positive, and the project remembers it.
-3. **Review tab:** press **Build queue**, then **▶ Start review mode**. Horus walks through every building in your grid in rows, like mowing a lawn, so the map barely moves between buildings:
+### 1 Check
+1. Horus picks your **Buildings**, **Roads** and **Grid** layers by their names; change them if needed.
+2. Select your grid cell on the map. **Area: Auto** checks your selected grid cells, or the map view if none are selected.
+3. Press **▶ Check**.
+4. Problems are grouped by type, most serious first. Click one, or use **Previous / Next**, to zoom to it:
+   - the feature is outlined in orange;
+   - the other feature involved is dashed purple;
+   - the problem spot is yellow.
 
-| Key | Action | Key | Action |
-|---|---|---|---|
-| **E** | approve + next | **F** | flag + next |
-| **N** | skip / next | **Q** | back |
-| **1 – 9** | shift to base by *N* floors | **G** | repeat last shift |
-| **W A S D** | nudge 0.25 m (Shift = 1 m) | **V** | pick roof → base vector |
-| **] [** | next / previous QC error | **C** | check this building now |
-| **Click** | pick a building | **Ctrl+Z** | undo anything |
+   The box below the list explains the problem and **what to do**.
+5. Not a real problem? Press **Ignore**. It stays hidden on the next check too.
 
-4. **Roof → base shift:** off-nadir images make every building in a scene lean the same way, by an amount that grows with height. Press **V**, click a roof corner, then the same corner at the base. Horus stores that lean *per floor* and *per grid cell*. After that, **2** moves a two-floor building to its base, and **G** repeats the last shift. Select several buildings to shift them all at once.
-5. Every approve and flag writes `hq_status`, `hq_by` and `hq_time` into the buildings layer (one click adds the fields). Your **daily target** bar fills up, and **Export today's review report** writes a CSV with a per-reviewer summary.
-6. With **Check my edits instantly** on, Horus re-checks a building ~0.4 s after you move or draw it. A red flash and a message tell you if it now overlaps a neighbour, sits on a road or crosses the grid edge.
+### 2 Review
+1. Press **▶ Start review**. The first time, Horus asks whether to save who reviewed each building in the layer (fields `hq_status`, `hq_by`, `hq_time`).
+2. Click the map once so it receives your keys.
+3. Press **V**, click a roof corner, then the same corner at the base. Horus remembers this lean per floor for the grid.
+4. For each building:
 
-## The 28 checks
+| Key | What it does |
+|---|---|
+| **1 – 9** | move the building to its base (number of floors) |
+| **W A S D** | small move (with Shift: bigger move) |
+| **E** | approve → next building |
+| **F** | flag a problem → next building |
+| **N / Q** | next / back |
+| **Ctrl+Z** | undo |
 
-Horus measures everything in **metres**: it uses the local UTM zone when the data is in degrees, so thresholds mean the same on EPSG:4326 as on projected data.
+The **Today** bar counts your work toward the daily target. **Export today's report** writes a CSV with a per-reviewer summary. While you edit, Horus warns you instantly if a building now overlaps a neighbour, sits on a road or crosses the grid edge.
 
-**Buildings**
+### ⚙ Settings
+Your name, the daily target, the W A S D step, zooming, instant warnings, which problems to look for, and every threshold. You only need it to tune Horus to your project.
 
-| Check | Severity | One-click fix |
-|---|---|---|
-| Empty building | critical | delete |
-| Invalid geometry | high | repair (makeValid) |
-| Self-intersection (bow-tie) | high | untangle: a 4-corner bow-tie becomes the rectangle you meant to draw |
-| Multipart building | medium | split into separate buildings |
-| Duplicate building (≥95% identical) | critical | delete the duplicate |
-| Building inside another | high | delete the inner one |
-| Overlapping buildings (≥15% of the smaller) | high | cut the overlap from this building |
-| Shared-wall sliver (attached houses) | low | cut the sliver → clean shared wall |
-| Hairline gap between buildings (≤0.5 m) | low | snap the wall onto the neighbour |
-| Building too small / unusually large | medium | delete (too small) |
-| Corners almost square (3–12° off) | low | square the corners (Orthogonalize) |
-| Spike / sharp vertex | medium | remove spike vertices |
-| Building on road (road ± buffer) | high | manual: shift the building or fix the road |
-| Building very close to road (set-back, off by default) | low | manual |
-| Building crosses grid edge | medium | manual (owner = grid holding its centre) |
-| Building outside all grids | high | manual |
+## What it looks for (28 checks)
 
-**Roads**
+Everything is measured in **metres**, even when your data is in degrees (EPSG:4326).
 
-| Check | Severity | One-click fix |
-|---|---|---|
-| Empty road / invalid geometry | critical / high | delete / repair |
-| Road crosses itself | medium | manual |
-| Multipart road | medium | split |
-| Duplicate road / roads overlapping | high / medium | delete duplicate / manual |
-| Road stops short of junction (undershoot ≤3 m) | medium | snap the end onto the road and add a junction vertex |
-| Road overshoots junction (tail ≤3 m) | low | trim the tail at the junction |
-| Dead end (T-junctions count as connected; grid-edge ends skipped) | low | manual |
-| Isolated road piece | medium | manual |
-| Very short segment | low | delete |
-
-Every threshold is editable on the **Settings** tab. Every fix is a single undoable edit (Ctrl+Z), and nothing is saved until you save your layer edits.
-
-## How it compares with Topology Checker Pro
-
-| | Topology Checker Pro | Horus QC |
-|---|---|---|
-| Units | layer units (degrees on EPSG:4326) | always metres / m² |
-| Overlaps | every overlap > 0 is an error | classified: duplicate / inside / overlap / shared-wall sliver |
-| Shared walls of attached houses | flood the list | low-severity sliver with one-click clean-up |
-| Dangles | any loose end | undershoot (auto-snap), overshoot (auto-trim), dead end; T-junctions OK |
-| Cross-layer checks | none (one layer at a time) | building on road, set-back, grid edge, outside grid |
-| Shape checks | none | near-square corners, spikes, tiny / huge buildings |
-| Auto-fix | makeValid, multipart | 16 fixes, all undoable |
-| Large layers | runs on the UI thread | background task with progress and cancel |
-| Review workflow | none | review queue, keys, daily target, status fields, report |
-| Roof → base shift | none | per-grid lean vector, 1–9 floors, WASD nudge |
-| Instant check after each edit | none | yes |
-| Errors as a layer | rubber bands only | styled marker layer + GeoPackage / CSV export |
-| False positives | re-appear every run | Ignore, remembered in the project |
-
-## Releasing a new version
-
-```bash
-python scripts/bump_version.py 1.1.0 "Added X; fixed Y"   # version, changelog, plugins.xml
-git commit -am "Release 1.1.0" && git tag v1.1.0
-git push && git push origin v1.1.0
-```
-
-The tag starts the release workflow. It builds the ZIP, creates the GitHub release and publishes the version to **plugins.qgis.org**, so every user gets the update from inside QGIS.
-
-**One-time setup for publishing:**
-
-1. Sign in to [plugins.qgis.org](https://plugins.qgis.org) with GitHub and upload the first ZIP with **Upload a plugin**.
-2. On the plugin's page, generate an upload token and save it as the repository secret `QGIS_PLUGIN_TOKEN`:
-   `gh secret set QGIS_PLUGIN_TOKEN --repo AmmarYasser455/horus-qc`
-
-To republish without a new tag, run the release workflow manually from the **Actions** tab. Accounts with an OSGeo ID can use the `OSGEO_USERNAME` / `OSGEO_PASSWORD` secrets instead of a token.
+| Buildings | Roads |
+|---|---|
+| Empty building · Invalid geometry · Outline crosses itself | Empty road · Invalid road line · Road crosses itself |
+| Several buildings in one feature · Duplicate building | Several roads in one feature · Duplicate road |
+| Building inside another · Overlapping buildings | Roads on top of each other |
+| Thin overlap on a shared wall · Tiny gap between buildings | Road stops short of junction · Road runs past junction |
+| Building too small · Building unusually large | Dead end (T-junctions count as connected) |
+| Corners almost square · Spike in the outline | Road not connected to network |
+| Building on road · Building very close to road (off by default) | Very short road piece |
+| Building crosses grid edge · Building outside all grids | |
 
 ## Privacy
 
-Horus QC makes **no network requests**. All checks and fixes run locally on the layers in your project.
+Horus QC makes **no network requests**. Everything runs locally on the layers in your project.
 
 ## Development
 
@@ -159,16 +111,26 @@ QT_QPA_PLATFORM=offscreen python3 tests/run_tests.py
 python scripts/build_zip.py
 ```
 
-CI runs the test suite against QGIS 3.40 and 3.44 (Qt5) and the latest QGIS (Qt6). Pushing a tag `vX.Y.Z` builds the ZIP and attaches it to a GitHub release.
+CI runs the tests on QGIS 3.40 and 3.44 (Qt5) and the latest QGIS (Qt6).
 
 ```
 horus_qc/
-  core/        pure-PyQGIS engine: checks, fixes, review state (no UI)
-  ui/          dock, markers, review map tool, live checker
+  core/        pure-PyQGIS engine: checks, review state (no UI)
+  ui/          panel, settings window, map markers, review map tool, instant checks
   plugin.py    toolbar / menu wiring
 tests/         engine + headless UI tests
 ```
 
+### Releasing a new version
+
+```bash
+python scripts/bump_version.py 1.2.0 "Added X; fixed Y"   # version, changelog, plugins.xml
+git commit -am "Release 1.2.0" && git tag v1.2.0
+git push && git push origin v1.2.0
+```
+
+The tag builds the ZIP, creates the GitHub release and, once the `QGIS_PLUGIN_TOKEN` secret is set, publishes to **plugins.qgis.org**. To get the token, sign in to [plugins.qgis.org](https://plugins.qgis.org) with GitHub, upload the first ZIP with **Upload a plugin**, generate a token on the plugin's page, then run `gh secret set QGIS_PLUGIN_TOKEN --repo AmmarYasser455/horus-qc`.
+
 ## Credits
 
-Overlap and road QC logic from [OVC](https://github.com/AmmarYasser455/ovc) by Ammar Yasser. MIT licensed.
+Overlap and road logic from [OVC](https://github.com/AmmarYasser455/ovc) by Ammar Yasser. MIT licensed.

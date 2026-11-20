@@ -1,4 +1,4 @@
-"""Geometry helpers shared by the checks, fixes and review tools."""
+"""Geometry helpers shared by the checks and the review tools."""
 
 import math
 
@@ -9,7 +9,6 @@ from qgis.core import (
     QgsPointXY,
     QgsProject,
     QgsRectangle,
-    QgsWkbTypes,
 )
 
 from ..compat import GEOM_LINE, GEOM_POINT, GEOM_POLYGON, METERS
@@ -140,40 +139,12 @@ def safe_point(geom):
     return QgsGeometry.fromPointXY(geom.boundingBox().center())
 
 
-def match_layer_type(layer, geom):
-    """Make ``geom`` match the layer's single/multi and Z/M flags."""
-    g = QgsGeometry(geom)
-    wkb = layer.wkbType()
-    if QgsWkbTypes.isMultiType(wkb) and not g.isMultipart():
-        g.convertToMultiType()
-    elif not QgsWkbTypes.isMultiType(wkb) and g.isMultipart() and part_count(g) == 1:
-        g.convertToSingleType()
-    if QgsWkbTypes.hasZ(wkb) and not QgsWkbTypes.hasZ(g.wkbType()):
-        g.get().addZValue(0)
-    if QgsWkbTypes.hasM(wkb) and not QgsWkbTypes.hasM(g.wkbType()):
-        g.get().addMValue(0)
-    if not QgsWkbTypes.hasZ(wkb) and QgsWkbTypes.hasZ(g.wkbType()):
-        g.get().dropZValue()
-    if not QgsWkbTypes.hasM(wkb) and QgsWkbTypes.hasM(g.wkbType()):
-        g.get().dropMValue()
-    return g
-
-
 # ---------------------------------------------------------------- rings & angles
 def polygon_rings(geom):
     """[[ring, ...] per part] as lists of QgsPointXY (closing point kept)."""
     if geom.isMultipart():
         return [list(map(list, poly)) for poly in geom.asMultiPolygon()]
     return [list(map(list, geom.asPolygon()))]
-
-
-def rings_to_geometry(parts):
-    parts = [p for p in parts if p and len(p[0]) >= 4]
-    if not parts:
-        return QgsGeometry()
-    if len(parts) == 1:
-        return QgsGeometry.fromPolygonXY(parts[0])
-    return QgsGeometry.fromMultiPolygonXY(parts)
 
 
 def _signed_area(pts):
@@ -260,28 +231,6 @@ def corner_report(geom, spike_deg, sq_min, sq_max):
                 if sq_min < dev < sq_max:
                     wobbly.append(p)
     return spikes, wobbly
-
-
-def remove_spikes(geom, spike_deg):
-    """Return a copy of a metric polygon geometry with spike vertices removed."""
-    out_parts = []
-    for part in polygon_rings(geom):
-        new_part = []
-        for ring in part:
-            pts = simplify_ring(open_ring(ring), straight_tol=0.0)
-            changed = True
-            while changed and len(pts) > 3:
-                changed = False
-                for i, ang in enumerate(interior_angles(pts)):
-                    if ang < spike_deg or ang > 360.0 - spike_deg:
-                        del pts[i]
-                        changed = True
-                        break
-            if len(pts) >= 3:
-                new_part.append(pts + [QgsPointXY(pts[0])])
-        if new_part:
-            out_parts.append(new_part)
-    return rings_to_geometry(out_parts)
 
 
 # ---------------------------------------------------------------- lines

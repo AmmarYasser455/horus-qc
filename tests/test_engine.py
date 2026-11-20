@@ -4,7 +4,6 @@ from qgis.core import QgsCoordinateReferenceSystem, QgsProject
 
 from horus_qc.core.catalog import CHECKS
 from horus_qc.core.engine import run_job
-from horus_qc.core.fixes import FixError, apply_fix
 from horus_qc.core.jobs import SCOPE_ALL, SCOPE_GRID_SELECTED, ScopeError, build_job, live_check
 from horus_qc.core.settings import QcSettings
 from tests.fixtures import BUILDINGS, GRID, ROADS, fid_of, make_layer
@@ -97,39 +96,6 @@ class EngineTest(unittest.TestCase):
         self.g.selectAll()
         e = by_check(run_job(build_job(settings(), self.b, self.r, self.g, SCOPE_GRID_SELECTED)))
         self.assertNotIn("onroad", self.names(e.get("b_on_road", []), self.b))  # outside the cell
-
-    def test_fixes_remove_errors(self):
-        s = settings()
-        e = self.run_all(s)
-        for key in ("b_duplicate", "b_shared_wall", "b_overlap", "b_gap", "b_self_intersection",
-                    "b_multipart", "b_not_square", "b_spike", "b_contained"):
-            for err in e[key]:
-                apply_fix(err, s)
-                self.assertEqual(err.status, "fixed")
-        after = self.run_all(s)
-        for key in ("b_duplicate", "b_shared_wall", "b_overlap", "b_gap", "b_self_intersection",
-                    "b_multipart", "b_not_square", "b_spike", "b_contained"):
-            self.assertNotIn(key, after, "%s still present after fix: %s" % (key, [x.message for x in after.get(key, [])]))
-        # everything is undoable
-        self.assertTrue(self.b.isEditable())
-        self.assertTrue(self.b.undoStack().count() >= 9)
-        self.b.rollBack()
-
-    def test_road_fixes(self):
-        s = settings()
-        e = self.run_all(s, buildings=False)
-        for key in ("r_undershoot", "r_overshoot", "r_duplicate"):
-            for err in e[key]:
-                apply_fix(err, s)
-        after = self.run_all(s, buildings=False)
-        for key in ("r_undershoot", "r_overshoot", "r_duplicate"):
-            self.assertNotIn(key, after, key)
-        self.r.rollBack()
-
-    def test_manual_check_has_no_fix(self):
-        e = self.run_all()
-        with self.assertRaises(FixError):
-            apply_fix(e["b_on_road"][0], settings())
 
     def test_live_check(self):
         self.b.startEditing()

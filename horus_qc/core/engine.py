@@ -58,7 +58,7 @@ class QcError:
     other_layer_id: str = ""
     value: object = None
     extra: dict = field(default_factory=dict)
-    status: str = "open"  # open | fixed | ignored
+    status: str = "open"  # open | ignored
 
     @property
     def definition(self):

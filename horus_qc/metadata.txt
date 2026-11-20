@@ -3,22 +3,17 @@ name=Horus QC
 qgisMinimumVersion=3.22
 qgisMaximumVersion=4.99
 supportsQt6=True
-description=Building & road quality control for grid-based digitising: classified overlaps, roof-to-base shifting, a keyboard review queue and one-click fixes.
-version=1.0.1
+description=Simple building & road quality control for grid-based digitising: find problems in your grid, then review every building with the keyboard and move it from roof to base.
+version=1.1.0
 author=Ammar Yasser
 email=186931310+AmmarYasser455@users.noreply.github.com
-about=Horus QC is a QA/QC toolkit for teams that digitise and review buildings and roads from satellite imagery, grid by grid.
+about=Horus QC helps teams that digitise and review buildings and roads from satellite imagery, grid by grid.
 
-    It goes beyond general topology checkers:
-    • 28 checks across buildings, roads and grids, measured in metres even on EPSG:4326 data
-    • Overlaps are classified into duplicate / building inside another / real overlap / shared-wall sliver, so attached houses don't flood the list
-    • Building-on-road, set-back, crossing-the-grid-edge and outside-all-grids checks
-    • Road undershoots and overshoots (with auto-snap / auto-trim), dead ends, isolated pieces and T-junction-aware dangles
-    • Near-square corner, spike and hairline-gap detection with one-click Orthogonalize / remove spike / snap wall
-    • Review mode: a serpentine queue through your grid with keys to approve, flag and skip, a daily target counter, and review status saved in the data
-    • Roof-to-base shift: pick the lean once per grid, then press 1-9 to shift a building by its floor count; WASD to nudge
-    • Instant checks after every edit, background processing, an error marker layer, and CSV/GeoPackage export
-    • All fixes are undoable (Ctrl+Z); nothing leaves your computer
+    Two simple steps:
+    1 Check: one button finds problems in your grid (28 checks, measured in metres): duplicates, overlapping buildings, buildings on roads, buildings crossing the grid edge, broken outlines, roads that stop short of a junction, and more. Problems are grouped by type; click one to zoom to it and read what to do.
+    2 Review: one button walks you through every building in your grid. Pick the roof-to-base lean once (V), then press 1-9 to move each building to its base by its number of floors, E to approve, F to flag. A daily target bar counts your work, and review status can be saved in the layer.
+
+    Horus also warns you instantly when an edit creates a problem. Everything runs on your computer; all edits are undoable with Ctrl+Z.
 
     Overlap logic is ported from OVC (https://github.com/AmmarYasser455/ovc).
 tracker=https://github.com/AmmarYasser455/horus-qc/issues
@@ -26,9 +21,10 @@ repository=https://github.com/AmmarYasser455/horus-qc
 homepage=https://github.com/AmmarYasser455/horus-qc
 category=Vector
 icon=icons/horus.png
-tags=quality control,qa,qc,buildings,roads,topology,overlap,digitizing,review,validation,grid,orthogonalize,shift
+tags=quality control,qa,qc,buildings,roads,topology,overlap,digitizing,review,validation,grid,shift
 experimental=False
 deprecated=False
 hasProcessingProvider=no
-changelog=1.0.1 Review mode: the highlight now follows the building after Ctrl+Z / redo and edits made with other tools.
+changelog=1.1.0 Simpler panel: two tabs (1 Check, 2 Review) with one big button each, problems grouped by type, and all options in a Settings window. Removed the automatic Fix buttons.
+    1.0.1 Review mode: the highlight now follows the building after Ctrl+Z / redo and edits made with other tools.
     1.0.0 First release: 28 checks, 16 one-click fixes, review mode with roof-to-base shift, live checks.
